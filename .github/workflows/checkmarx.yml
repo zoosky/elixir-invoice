@@ -2,7 +2,7 @@ name: scan with KICS using config file
 
 on:
   pull_request:
-    branches: [container]
+    branches: 
 
 jobs:
   kics-job:
