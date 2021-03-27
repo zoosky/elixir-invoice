@@ -1,0 +1,58 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ docker ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+name: scan with KICS using config file
+
+on:
+  pull_request:
+    branches: [container]
+
+jobs:
+  kics-job:
+    runs-on: ubuntu-latest
+    name: kics-action
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Mkdir results-dir
+        # make sure results dir is created
+        run: mkdir -p results-dir
+      - name: Create config file
+        # creating a heredoc config file
+        run: |
+          cat <<EOF >>kics.config
+          {
+            "exclude-categories": "Encryption",
+            "exclude-paths": "terraform/gcp/big_data.tf,terraform/gcp/gcs.tf",
+            "log-file": true,
+            "minimal-ui": false,
+            "no-color": false,
+            "no-progress": true,
+            "output-path": "./results-dir",
+            "payload-path": "file path to store source internal representation in JSON format",
+            "preview-lines": 5,
+            "report-formats": "json,sarif",
+            "type": "terraform",
+            "verbose": true
+          }
+          EOF
+      - name: Run KICS Scan using config
+        uses: checkmarx/kics-action@docker-runner
+        with:
+          path: 'terraform'
+          config_path: ./kics.config
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results-dir/results.sarif
