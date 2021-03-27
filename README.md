@@ -1,4 +1,4 @@
-# Invoice
+# Invoice Playground 
 
 To start your Phoenix server:
 
